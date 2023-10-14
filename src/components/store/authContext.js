@@ -30,11 +30,6 @@ export  const AuthContextProvider = (props)=>{
         localStorage.removeItem('email')
     }
 
-    if(token){
-        setTimeout(()=>{
-            logoutHandler()
-        },5000)
-    }
 
     const contextValue = {
         token:token,

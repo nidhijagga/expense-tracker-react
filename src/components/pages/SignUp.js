@@ -2,6 +2,7 @@ import React, { useRef, useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthContext from '.././store/authContext'; // Import the AuthContext
 import axios from 'axios'; // You may need to install axios: npm install axios
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function SignUp() {
   const emailRef = useRef(null);
@@ -29,7 +30,7 @@ function SignUp() {
     // Make a request to Firebase Authentication API to sign up the user
     axios
       .post(
-        'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyABGJS2HDApn-xgCwVIcCjf2N_zOmAGT9c', // Replace [API_KEY] with your actual API key
+        `https://identitytoolkit.googleapis.com/v1/accounts:signup?key=${API_KEY}`, // Replace [API_KEY] with your actual API key
         {
           email: email,
           password: password,

@@ -2,6 +2,7 @@ import React, { useRef, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthContext from '.././store/authContext'; // Import the AuthContext
 import axios from 'axios'; // You may need to install axios: npm install axios
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 function Login() {
   const emailRef = useRef(null);
@@ -20,7 +21,7 @@ function Login() {
     // Make a request to Firebase Authentication API to sign in the user
     axios
       .post(
-        'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyABGJS2HDApn-xgCwVIcCjf2N_zOmAGT9c', // Replace YOUR_API_KEY with your actual API key
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`, // Replace YOUR_API_KEY with your actual API key
         {
           email: email,
           password: password,
@@ -30,8 +31,9 @@ function Login() {
       .then((response) => {
         const { idToken } = response.data;
         authContext.Login(idToken, email);
+        authContext.isLoggedIn = true;
         alert("Successfully Logged In");
-        navigate('/');
+        // navigate('/');
       })
       .catch((error) => {
         alert(error?.response?.data?.error?.message);
