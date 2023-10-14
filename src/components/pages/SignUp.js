@@ -52,7 +52,7 @@ function SignUp() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="max-w-md w-full p-4 space-y-6 bg-white rounded-lg shadow-lg">
-        <h2 className="text-2xl text-center font-semibold">Sign Up</h2>
+        <h2 className="text-2xl text-center font-semibold text-blue-900">Sign Up</h2>
         <form>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <div className="mb-4">
@@ -82,7 +82,7 @@ function SignUp() {
               ref={confirmPasswordRef}
             />
           </div>
-          <button onClick={handleSignUp} className="w-full py-2 px-4 bg-green-500 text-white rounded hover:bg-green-600">
+          <button onClick={handleSignUp} className="w-full py-2 px-4 bg-blue-950 text-white rounded hover:bg-blue-800">
             Sign Up
           </button>
         </form>
