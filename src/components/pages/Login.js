@@ -1,19 +1,47 @@
-import React, { useRef } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useRef, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import AuthContext from '.././store/authContext'; // Import the AuthContext
+import axios from 'axios'; // You may need to install axios: npm install axios
 
 function Login() {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
 
-  const handleLogin = () => {
+  const navigate = useNavigate(); // Use React Router's navigate for navigation
+
+  // Access the AuthContext
+  const authContext = useContext(AuthContext);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
     const email = emailRef.current.value;
     const password = passwordRef.current.value;
+
+    // Make a request to Firebase Authentication API to sign in the user
+    axios
+      .post(
+        'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyABGJS2HDApn-xgCwVIcCjf2N_zOmAGT9c', // Replace YOUR_API_KEY with your actual API key
+        {
+          email: email,
+          password: password,
+          returnSecureToken: true,
+        }
+      )
+      .then((response) => {
+        const { idToken } = response.data;
+        authContext.Login(idToken, email);
+        alert("Successfully Logged In");
+        navigate('/');
+      })
+      .catch((error) => {
+        alert(error?.response?.data?.error?.message);
+      });
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="max-w-md w-full p-4 space-y-6 bg-white rounded-lg shadow-lg">
-        <h2 className="text-2xl text-center font-semibold">Login</h2>
+        <h2 className="text-2xl text-center font-semibold">Log In</h2>
         <form>
           <div className="mb-4">
             <label className="block text-gray-600 text-sm font-medium">Email</label>
@@ -33,7 +61,7 @@ function Login() {
               ref={passwordRef}
             />
           </div>
-          <button onClick={handleLogin} className="w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button onClick={handleLogin} className="w-full py-2 px-4 bg-blue-500 text-white rounded hover-bg-blue-600">
             Log In
           </button>
         </form>
