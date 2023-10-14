@@ -1,13 +1,19 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthContext from "../store/authContext";
 import axios from "axios";
 const API_KEY = process.env.REACT_APP_API_KEY;
 
 function Header() {
   const authContext = useContext(AuthContext);
+  const navigate = useNavigate();
   const [emailStatus, setEmailStatus] = useState(false);
   const [profileStatus, setProfileStatus] = useState(false);
+
+  const handleLogout = () => {
+    authContext.Logout();
+    navigate("/login");
+  }
 
   const handleEmailVerify = () => {
     const payload = {
@@ -79,12 +85,12 @@ function Header() {
                 Complete Profile
               </Link>
             )}
-            <Link
-              to="/logout"
-              className="text-white mx-2 p-2 rounded bg-blue-950 hover-bg-blue-900"
-            >
-              Logout
-            </Link>
+            <button
+                className="text-white mx-2 p-2 rounded bg-blue-950 hover:bg-blue-900"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
           </>
         )}
       </div>
