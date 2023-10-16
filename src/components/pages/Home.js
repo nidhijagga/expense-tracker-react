@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 const categories = ["Food", "Transport", "Shopping", "Entertainment", "Others"];
 
 function Home() {
@@ -11,8 +11,25 @@ function Home() {
     price: "",
   });
 
+  // New state to track the currently edited expense
+  const [editingExpense, setEditingExpense] = useState(null);
+
+  useEffect(() => {
+    // Fetch expenses from the provided URL
+    axios
+      .get("https://expense-tracker-react-5db70-default-rtdb.firebaseio.com/expenses.json")
+      .then((response) => {
+        if (response.data) {
+          const expensesArray = Object.values(response.data);
+          setExpenses(expensesArray);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching expenses:", error);
+      });
+  }, []);
+
   const addExpense = () => {
-    // Check if any of the input fields is empty
     if (
       newExpense.date === "" ||
       newExpense.description === "" ||
@@ -20,10 +37,69 @@ function Home() {
       newExpense.price === ""
     ) {
       alert("Please fill in all fields before adding an expense.");
-      return; // Exit the function
+      return;
     }
 
-    setExpenses([...expenses, newExpense]);
+    axios
+      .post("https://expense-tracker-react-5db70-default-rtdb.firebaseio.com/expenses.json", newExpense)
+      .then((response) => {
+        setExpenses([...expenses, { ...newExpense, id: response.data.name }]);
+        setNewExpense({
+          date: "",
+          description: "",
+          category: "",
+          price: "",
+        });
+      })
+      .catch((error) => {
+        console.error("Error adding expense:", error);
+      });
+  };
+
+  const editExpense = (expense) => {
+    // Set the expense to edit
+    setEditingExpense(expense);
+    // Populate the input fields with the expense's values
+    setNewExpense({ ...expense });
+  };
+
+  const updateExpense = () => {
+    // Check if any of the input fields is empty
+    if (
+      newExpense.date === "" ||
+      newExpense.description === "" ||
+      newExpense.category === "" ||
+      newExpense.price === ""
+    ) {
+      alert("Please fill in all fields before updating the expense.");
+      return;
+    }
+
+    // Update the expense in both local state and on the server
+    axios
+      .put(`https://expense-tracker-react-5db70-default-rtdb.firebaseio.com/expenses/${newExpense.id}.json`, newExpense)
+      .then(() => {
+        const updatedExpenses = expenses.map((expense) =>
+          expense.id === newExpense.id ? newExpense : expense
+        );
+        setExpenses(updatedExpenses);
+        // Reset the editing state
+        setEditingExpense(null);
+        setNewExpense({
+          date: "",
+          description: "",
+          category: "",
+          price: "",
+        });
+      })
+      .catch((error) => {
+        console.error("Error updating expense:", error);
+      });
+  };
+
+  const cancelEditing = () => {
+    // Reset the editing state and clear the input fields
+    setEditingExpense(null);
     setNewExpense({
       date: "",
       description: "",
@@ -32,23 +108,23 @@ function Home() {
     });
   };
 
-  const editExpense = (index) => {
-    // Implement edit functionality here
-  };
-
-  const deleteExpense = (index) => {
-    const updatedExpenses = [...expenses];
-    updatedExpenses.splice(index, 1);
+  const deleteExpense = (id) => {
+    const updatedExpenses = expenses.filter((expense) => expense.id !== id);
     setExpenses(updatedExpenses);
+
+    axios
+      .delete(`https://expense-tracker-react-5db70-default-rtdb.firebaseio.com/expenses/${id}.json`)
+      .catch((error) => {
+        console.error("Error deleting expense:", error);
+      });
   };
 
   return (
     <div className="min-h-screen p-4 bg-blue-200 text-blue-950">
       <h2 className="text-2xl font-bold mb-4">Expense Tracker</h2>
 
-      {/* Add Expense Form */}
       <div className="mb-4">
-        <h3 className="text-xl font-bold">Add Expense</h3>
+        <h3 className="text-xl font-bold">Add/Edit Expense</h3>
         <div className="flex space-x-4">
           <input
             type="date"
@@ -91,16 +167,32 @@ function Home() {
             placeholder="Price (INR)"
             className="p-2 border rounded bg-blue-100"
           />
-          <button
-            onClick={addExpense}
-            className="py-2 px-4 bg-blue-950 text-white rounded hover:bg-blue-800"
-          >
-            Add
-          </button>
+          {editingExpense ? (
+            <>
+              <button
+                onClick={updateExpense}
+                className="py-2 px-4 bg-blue-950 text-white rounded hover:bg-blue-800"
+              >
+                Update
+              </button>
+              <button
+                onClick={cancelEditing}
+                className="py-2 px-4 bg-red-500 text-white rounded hover:bg-red-400"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={addExpense}
+              className="py-2 px-4 bg-blue-950 text-white rounded hover:bg-blue-800"
+            >
+              Add
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Expenses List */}
       <div>
         <h3 className="text-xl font-bold">Expenses</h3>
         <table className="w-full mt-2">
@@ -122,13 +214,13 @@ function Home() {
                 <td>{expense.price}</td>
                 <td>
                   <button
-                    onClick={() => editExpense(index)}
+                    onClick={() => editExpense(expense)}
                     className="text-blue-950 mr-2"
                   >
                     Edit
                   </button>
                   <button
-                    onClick={() => deleteExpense(index)}
+                    onClick={() => deleteExpense(expense.id)}
                     className="text-red-500"
                   >
                     Delete
