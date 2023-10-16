@@ -30,7 +30,7 @@ function Login() {
         authContext.Login(idToken, email);
         authContext.isLoggedIn = true;
         alert("Successfully Logged In");
-        navigate('/complete-profile');
+        navigate('/home');
       })
       .catch((error) => {
         alert(error?.response?.data?.error?.message);

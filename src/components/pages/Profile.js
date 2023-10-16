@@ -59,7 +59,6 @@ function Profile() {
       )
       .then((res) => {
         const user = res.data.users[0];
-        console.log(user)
 
         if (user) {
           if (user.displayName) {

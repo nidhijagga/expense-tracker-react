@@ -13,7 +13,7 @@ function Header() {
   const handleLogout = () => {
     authContext.Logout();
     navigate("/login");
-  }
+  };
 
   const handleEmailVerify = () => {
     const payload = {
@@ -44,7 +44,12 @@ function Header() {
         const user = res.data.users[0];
 
         if (user) {
-          if (user.displayName && user.displayName !== "" && user.photoUrl && user.photoUrl !== "") {
+          if (
+            user.displayName &&
+            user.displayName !== "" &&
+            user.photoUrl &&
+            user.photoUrl !== ""
+          ) {
             setProfileStatus(true);
           }
           if (user.emailVerified && user.emailVerified === true) {
@@ -57,7 +62,17 @@ function Header() {
 
   return (
     <header className="bg-blue-500 p-4 flex justify-between items-center">
-      <div className="text-white text-2xl font-bold">Expense Tracker</div>
+      <div className="flex items-center">
+        <div className="text-white text-2xl font-bold">Expense Tracker</div>
+        {authContext.isLoggedIn && (
+          <Link
+            to="/home"
+            className="text-white mx-2 p-2 rounded bg-blue-950 hover:bg-blue-900"
+          >
+            Home
+          </Link>
+        )}
+      </div>
       <div className="flex items-center">
         {authContext.isLoggedIn && (
           <>
@@ -67,16 +82,19 @@ function Header() {
               </span>
             ) : (
               <button
-                className="text-white mx-2 p-2 rounded bg-blue-950 hover:bg-blue-900"
+                className="text-white mx-2 p-2 rounded bg-blue-950 hover-bg-blue-900"
                 onClick={handleEmailVerify}
               >
                 Verify Email
               </button>
             )}
             {profileStatus ? (
-              <span className="text-white mx-2 p-2 rounded bg-blue-900">
+              <Link
+                to="/complete-profile"
+                className="text-white mx-2 p-2 rounded bg-blue-950 hover-bg-blue-900"
+              >
                 Profile ☑️
-              </span>
+              </Link>
             ) : (
               <Link
                 to="/complete-profile"
@@ -86,11 +104,11 @@ function Header() {
               </Link>
             )}
             <button
-                className="text-white mx-2 p-2 rounded bg-blue-950 hover:bg-blue-900"
-                onClick={handleLogout}
-              >
-                Logout
-              </button>
+              className="text-white mx-2 p-2 rounded bg-blue-950 hover-bg-blue-900"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
           </>
         )}
       </div>
