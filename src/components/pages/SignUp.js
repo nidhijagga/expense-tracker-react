@@ -1,7 +1,8 @@
-import React, { useRef, useContext, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import AuthContext from '.././store/authContext'; // Import the AuthContext
-import axios from 'axios'; // You may need to install axios: npm install axios
+import { useDispatch } from 'react-redux';
+import { login } from '../../features/authSlice';
+import axios from 'axios';
 const API_KEY = process.env.REACT_APP_API_KEY;
 
 function SignUp() {
@@ -9,10 +10,8 @@ function SignUp() {
   const passwordRef = useRef(null);
   const confirmPasswordRef = useRef(null);
 
-  const navigate = useNavigate(); // Use React Router's navigate for navigation
-
-  // Access the AuthContext
-  const authContext = useContext(AuthContext);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [error, setError] = useState(null);
 
@@ -27,10 +26,9 @@ function SignUp() {
       return;
     }
 
-    // Make a request to Firebase Authentication API to sign up the user
     axios
       .post(
-        `https://identitytoolkit.googleapis.com/v1/accounts:signup?key=${API_KEY}`, // Replace [API_KEY] with your actual API key
+        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`,
         {
           email: email,
           password: password,
@@ -38,13 +36,13 @@ function SignUp() {
         }
       )
       .then((response) => {
-        console.log(response);
         const { idToken } = response.data;
-        authContext.Login(idToken, email);
+        dispatch(login({ token: idToken, email: email }));
         alert("Successfully Signed Up");
-        navigate('/'); 
+        navigate('/home');
       })
       .catch((error) => {
+        console.log(error)
         alert(error?.response?.data?.error?.message);
       });
   };
@@ -82,7 +80,7 @@ function SignUp() {
               ref={confirmPasswordRef}
             />
           </div>
-          <button onClick={handleSignUp} className="w-full py-2 px-4 bg-blue-950 text-white rounded hover:bg-blue-800">
+          <button onClick={handleSignUp} className="w-full py-2 px-4 bg-blue-950 text-white rounded hover-bg-blue-800">
             Sign Up
           </button>
         </form>

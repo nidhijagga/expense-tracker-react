@@ -1,9 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  setExpense,
+  addExpense,
+  editExpense,
+  deleteExpense,
+  toggleActivePremium,
+} from "../../features/expenseSlice";
 import axios from "axios";
+
 const categories = ["Food", "Transport", "Shopping", "Entertainment", "Others"];
 
 function Home() {
-  const [expenses, setExpenses] = useState([]);
+  // Use Redux selectors and dispatch
+  const expenses = useSelector((state) => state.expenses.expenses);
+  const activePremium = useSelector((state) => state.expenses.activePremium);
+  const dispatch = useDispatch();
+
   const [newExpense, setNewExpense] = useState({
     date: "",
     description: "",
@@ -16,12 +29,22 @@ function Home() {
 
   useEffect(() => {
     // Fetch expenses from the provided URL
+  }, [expenses, activePremium]);
+
+  useEffect(() => {
     axios
-      .get("https://expense-tracker-react-5db70-default-rtdb.firebaseio.com/expenses.json")
+      .get(
+        "https://expense-tracker-react-5db70-default-rtdb.firebaseio.com/expenses.json"
+      )
       .then((response) => {
         if (response.data) {
-          const expensesArray = Object.values(response.data);
-          setExpenses(expensesArray);
+          const expensesData = response.data;
+          const expensesArray = Object.keys(expensesData).map((id) => ({
+            id,
+            ...expensesData[id],
+          }));
+          // Initialize your Redux state with the fetched data
+          dispatch(setExpense(expensesArray));
         }
       })
       .catch((error) => {
@@ -29,7 +52,18 @@ function Home() {
       });
   }, []);
 
-  const addExpense = () => {
+  useEffect(() => {
+    const totalExpensePrice = expenses.reduce(
+      (total, expense) => total + parseFloat(expense.price),
+      0
+    );
+    if (totalExpensePrice >= 10000 && !activePremium) {
+      // Dispatch the action to toggle activePremium
+      dispatch(toggleActivePremium());
+    }
+  }, [expenses]);
+
+  const addExpenseHandler = () => {
     if (
       newExpense.date === "" ||
       newExpense.description === "" ||
@@ -41,9 +75,12 @@ function Home() {
     }
 
     axios
-      .post("https://expense-tracker-react-5db70-default-rtdb.firebaseio.com/expenses.json", newExpense)
+      .post(
+        "https://expense-tracker-react-5db70-default-rtdb.firebaseio.com/expenses.json",
+        newExpense
+      )
       .then((response) => {
-        setExpenses([...expenses, { ...newExpense, id: response.data.name }]);
+        dispatch(addExpense(newExpense));
         setNewExpense({
           date: "",
           description: "",
@@ -56,7 +93,7 @@ function Home() {
       });
   };
 
-  const editExpense = (expense) => {
+  const editExpenseHandler = (expense) => {
     // Set the expense to edit
     setEditingExpense(expense);
     // Populate the input fields with the expense's values
@@ -77,12 +114,18 @@ function Home() {
 
     // Update the expense in both local state and on the server
     axios
-      .put(`https://expense-tracker-react-5db70-default-rtdb.firebaseio.com/expenses/${newExpense.id}.json`, newExpense)
+      .put(
+        `https://expense-tracker-react-5db70-default-rtdb.firebaseio.com/expenses/${newExpense.id}.json`,
+        newExpense
+      )
       .then(() => {
         const updatedExpenses = expenses.map((expense) =>
           expense.id === newExpense.id ? newExpense : expense
         );
-        setExpenses(updatedExpenses);
+        // Dispatch an action to update expenses in Redux store
+        dispatch(
+          editExpense({ id: newExpense.id, updatedExpense: newExpense })
+        );
         // Reset the editing state
         setEditingExpense(null);
         setNewExpense({
@@ -108,12 +151,13 @@ function Home() {
     });
   };
 
-  const deleteExpense = (id) => {
-    const updatedExpenses = expenses.filter((expense) => expense.id !== id);
-    setExpenses(updatedExpenses);
+  const deleteExpenseHandler = (id) => {
+    dispatch(deleteExpense(id));
 
     axios
-      .delete(`https://expense-tracker-react-5db70-default-rtdb.firebaseio.com/expenses/${id}.json`)
+      .delete(
+        `https://expense-tracker-react-5db70-default-rtdb.firebaseio.com/expenses/${id}.json`
+      )
       .catch((error) => {
         console.error("Error deleting expense:", error);
       });
@@ -171,21 +215,21 @@ function Home() {
             <>
               <button
                 onClick={updateExpense}
-                className="py-2 px-4 bg-blue-950 text-white rounded hover:bg-blue-800"
+                className="py-2 px-4 bg-blue-950 text-white rounded hover-bg-blue-800"
               >
                 Update
               </button>
               <button
                 onClick={cancelEditing}
-                className="py-2 px-4 bg-red-500 text-white rounded hover:bg-red-400"
+                className="py-2 px-4 bg-red-500 text-white rounded hover-bg-red-400"
               >
                 Cancel
               </button>
             </>
           ) : (
             <button
-              onClick={addExpense}
-              className="py-2 px-4 bg-blue-950 text-white rounded hover:bg-blue-800"
+              onClick={addExpenseHandler}
+              className="py-2 px-4 bg-blue-950 text-white rounded hover-bg-blue-800"
             >
               Add
             </button>
@@ -214,13 +258,13 @@ function Home() {
                 <td>{expense.price}</td>
                 <td>
                   <button
-                    onClick={() => editExpense(expense)}
+                    onClick={() => editExpenseHandler(expense)}
                     className="text-blue-950 mr-2"
                   >
                     Edit
                   </button>
                   <button
-                    onClick={() => deleteExpense(expense.id)}
+                    onClick={() => deleteExpenseHandler(expense.id)}
                     className="text-red-500"
                   >
                     Delete

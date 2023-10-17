@@ -1,6 +1,7 @@
-import React, { useRef, useContext } from 'react';
+import React, { useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import AuthContext from '.././store/authContext';
+import { useDispatch } from 'react-redux';
+import { login } from '../../features/authSlice';
 import axios from 'axios';
 const API_KEY = process.env.REACT_APP_API_KEY;
 
@@ -9,7 +10,7 @@ function Login() {
   const passwordRef = useRef(null);
 
   const navigate = useNavigate();
-  const authContext = useContext(AuthContext);
+  const dispatch = useDispatch();
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -27,15 +28,14 @@ function Login() {
       )
       .then((response) => {
         const { idToken } = response.data;
-        authContext.Login(idToken, email);
-        authContext.isLoggedIn = true;
+        dispatch(login({ token: idToken, email: email }));
         alert("Successfully Logged In");
         navigate('/home');
       })
       .catch((error) => {
         alert(error?.response?.data?.error?.message);
       });
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
